@@ -19,42 +19,50 @@ actual_costs_data <- read_excel(excel_file_path_02)
 
 # Summarize the actual costs data
 actual_costs_summary <- actual_costs_data %>%
-  group_by(ProjectID, Status) %>%
+  group_by(Budgetary_item_ID, Status) %>%
   summarize(Total_Cost = sum(Cost, na.rm = TRUE))
 
 # Merge summarized data with the budget data
 comparison_df <- budget_data %>%
-  left_join(actual_costs_summary, by = "ProjectID")
+  left_join(actual_costs_summary, by = "Budgetary_item_ID")
 
 # Create a unique data frame for Budget values
 budget_unique <- budget_data %>%
-  select(ProjectID, Description, Budget) %>%
+  select(Budgetary_item_ID, Short_description, Budget) %>%
   distinct()
 
-# Convert Description to a factor
-budget_unique$Description <- factor(budget_unique$Description)
-comparison_df$Description <- factor(comparison_df$Description)
+# Convert Short_description to a factor
+budget_unique$Short_description <- factor(budget_unique$Short_description)
+comparison_df$Short_description <- factor(comparison_df$Short_description)
+
+# Define the status labels
+status_labels <- c(
+  "1" = "booked",
+  "2" = "in progress",
+  "3" = "free to book",
+  "4" = "rejected",
+  "5" = "NA"
+)
 
 # Plot the data
 ggplot() +
   # Background bars for unique Budget
-  geom_col(data = budget_unique, aes(x = Description, y = Budget), fill = "lightgray", width = 0.8, position = "stack") +
+  geom_col(data = budget_unique, aes(x = Short_description, y = Budget), fill = "lightgray", width = 0.8, position = "stack") +
   # Overlapping bars for Total_Cost categorized by Status
-  geom_col(data = comparison_df, aes(x = Description, y = Total_Cost, fill = Status), width = 0.5, position = "stack") +
+  geom_col(data = comparison_df, aes(x = Short_description, y = Total_Cost, fill = factor(Status, levels = names(status_labels), labels = status_labels)), width = 0.5, position = "stack") +
   # Rotate X axis labels 45 degrees
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
   labs(
     title = "Comparison of Budget and Actual Costs by Status",
-    x = "Description",
-    y = "Amount",
+    x = "Short Description",
+    y = "Amount ($)",
     fill = "Status"
   ) +
   scale_fill_manual(values = c(
-    "Status1" = "lightgreen",
-    "Status2" = "red",
-    "Status3" = "green",
-    "Status4" = "blue",
-    "Status5" = "pink",
+    "booked" = "lightgreen",
+    "in progress" = "red",
+    "free to book" = "green",
+    "rejected" = "blue",
     "NA" = "grey"
   )) +
   theme_minimal()
@@ -65,6 +73,7 @@ write.xlsx(comparison_df, output_file_path, rowNames = FALSE)
 
 # Print a message confirming the file creation
 cat("Excel file saved successfully:", output_file_path, "\n")
+
 
 
 # Print a message confirming the file creation
