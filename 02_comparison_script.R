@@ -2,78 +2,70 @@
 install.packages("tidyverse")
 install.packages("ggplot2")
 install.packages("readxl")
+install.packages("openxlsx")
 
 library(tidyverse)
 library(ggplot2)
 library(readxl)
+library(openxlsx)
 
 # Set the file paths to the Excel files
-excel_file_path_01 <- "C:\\Users\\DiazLeFJ\\OneDrive - BASF\\Desktop\\H4CHEM\\02_AVISOR TEST_2\\01_bestellabruf_leffer.xlsx"
-excel_file_path_02 <- "C:\\Users\\DiazLeFJ\\OneDrive - BASF\\Desktop\\H4CHEM\\02_AVISOR TEST_2\\02_ausmassen_alle.xlsx"
+excel_file_path_01 <- "path/to/your_budget_file.xlsx"
+excel_file_path_02 <- "path/to/your_actual_costs_file.xlsx"
 
 # Load the Excel files into data frames
-bestellabruf_leffer <- read_excel(excel_file_path_01)
-ausmass_leffer <- read_excel(excel_file_path_02)
+budget_data <- read_excel(excel_file_path_01)
+actual_costs_data <- read_excel(excel_file_path_02)
 
-ausmass_summary <- ausmass_leffer %>%
-  group_by(Bestellabruf, Status) %>%
-  summarize(Total_Gesamtwert = sum(`Gesamtwert`, na.rm = TRUE))
+# Summarize the actual costs data
+actual_costs_summary <- actual_costs_data %>%
+  group_by(ProjectID, Status) %>%
+  summarize(Total_Cost = sum(Cost, na.rm = TRUE))
 
-# Merge summarized data with the first table to compare with Erwarteter Wert
-comparison_df <- bestellabruf_leffer %>%
-  left_join(ausmass_summary, by = "Bestellabruf")
+# Merge summarized data with the budget data
+comparison_df <- budget_data %>%
+  left_join(actual_costs_summary, by = "ProjectID")
 
-
-# Remove specified columns from the comparison data frame using select and the - operator
-comparison_df <- comparison_df %>%
-  select(-`Freigegeben am`, -`Gesamtlimit`, -`Währung`, -`Gültig bis`, -`Kontrakt-Typ`)
-
-# Create a unique data frame for Erwarteter Wert
-erwarteter_wert_unique <- bestellabruf_leffer %>%
-  select(Bestellabruf, `Kurztext Bestellabruf`, `Erwarteter Wert`) %>%
+# Create a unique data frame for Budget values
+budget_unique <- budget_data %>%
+  select(ProjectID, Description, Budget) %>%
   distinct()
 
-# Merge summarized data with the first table to compare with Erwarteter Wert
-comparison_df <- bestellabruf_leffer %>%
-  left_join(ausmass_summary, by = "Bestellabruf")
+# Convert Description to a factor
+budget_unique$Description <- factor(budget_unique$Description)
+comparison_df$Description <- factor(comparison_df$Description)
 
-
-# Convert Kurztext Bestellabruf to a factor
-erwarteter_wert_unique$`Kurztext Bestellabruf` <- factor(erwarteter_wert_unique$`Kurztext Bestellabruf`)
-comparison_df$`Kurztext Bestellabruf` <- factor(comparison_df$`Kurztext Bestellabruf`)
-
+# Plot the data
 ggplot() +
-  # Background bars for unique Erwarteter Wert
-  geom_col(data = erwarteter_wert_unique, aes(x = `Kurztext Bestellabruf`, y = `Erwarteter Wert`), fill = "lightgray", width = 0.8, position = "stack") +
-  # Overlapping bars for Total_Gesamtwert categorized by Status
-  geom_col(data = comparison_df, aes(x = `Kurztext Bestellabruf`, y = Total_Gesamtwert, fill = Status.y), width = 0.5, position = "stack") +
+  # Background bars for unique Budget
+  geom_col(data = budget_unique, aes(x = Description, y = Budget), fill = "lightgray", width = 0.8, position = "stack") +
+  # Overlapping bars for Total_Cost categorized by Status
+  geom_col(data = comparison_df, aes(x = Description, y = Total_Cost, fill = Status), width = 0.5, position = "stack") +
   # Rotate X axis labels 45 degrees
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
   labs(
-    title = "Comparison of Erwarteter Wert and Gesamtwert by Status",
-    x = "Kurztext Bestellabruf",
-    y = "Betrag (€)",
+    title = "Comparison of Budget and Actual Costs by Status",
+    x = "Description",
+    y = "Amount",
     fill = "Status"
   ) +
   scale_fill_manual(values = c(
-    "Alt-Transfer" = "lightgreen",
-    "Bearbeitung" = "red",
-    "Frei techn." = "green",
-    "Korrektur v. KT" = "blue",
-    "Wiedervorl. v. KT" = "pink",
+    "Status1" = "lightgreen",
+    "Status2" = "red",
+    "Status3" = "green",
+    "Status4" = "blue",
+    "Status5" = "pink",
     "NA" = "grey"
-  ))
+  )) +
+  theme_minimal()
 
-########
-getwd()
-# Load the openxlsx library
-library(openxlsx)
+# Save the comparison_df to an Excel file
+output_file_path <- "path/to/comparison_df.xlsx"
+write.xlsx(comparison_df, output_file_path, rowNames = FALSE)
 
-# Specify the file path where you want to save the Excel file
-excel_file_path <- "comparison_df.xlsx"
+# Print a message confirming the file creation
+cat("Excel file saved successfully:", output_file_path, "\n")
 
-# Write comparison_df to an Excel file
-write.xlsx(comparison_df, excel_file_path, rowNames = FALSE)
 
 # Print a message confirming the file creation
 cat("Excel file saved successfully:", excel_file_path, "\n")
