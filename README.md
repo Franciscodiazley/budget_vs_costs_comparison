@@ -1,6 +1,20 @@
 # budget_vs_costs_comparison
 This repository contains an R script for comparing budgeted costs and actual costs from two different Excel files. The script performs data processing and visualization using ggplot2.
 
+#### Example Files
+
+Example files are provided to help you understand the expected input format:
+
+- `your_budget_file_example.xlsx`: Contains columns for Budgetary item ID, Short description, and Budget ($).
+- `your_actual_costs_file_example.xlsx`: Contains columns for Budgetary item ID, Budgetary item imputed cost ID, Cost ($), and Status.
+
+The possible statuses in the actual costs file are:
+- 1 = booked 
+- 2 = in progress 
+- 3 = free to book 
+- 4 = rejected 
+- 5 = NA
+
 ## Files
 
 - `comparison_script.R`: The R script for data processing and visualization.
