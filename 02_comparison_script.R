@@ -9,6 +9,27 @@ library(ggplot2)
 library(readxl)
 library(openxlsx)
 
+
+# Generate example data for budget and actual costs
+
+# Create example budget data
+budget_df <- data.frame(
+  `Budgetary item ID` = c(1, 2, 3),
+  `Short description` = c("Item A", "Item B", "Item C"),
+  `Budget ($)` = c(10000, 20000, 30000)
+)
+
+# Create example actual costs data
+actual_costs_df <- data.frame(
+  `Budgetary item ID` = c(1, 1, 2, 3, 3, 3),
+  `Budgetary item imputed cost ID` = c(101, 102, 201, 301, 302, 303),
+  `Cost ($)` = c(5000, 4000, 15000, 10000, 5000, 7000),
+  `Status` = c(1, 1, 2, 3, 3, 5)
+)
+
+# Save the example data to Excel files
+write.xlsx(budget_df, "your_budget_file_example.xlsx", rowNames = FALSE)
+write.xlsx(actual_costs_df, "your_actual_costs_file_example.xlsx", rowNames = FALSE)
 # Set the file paths to the Excel files
 excel_file_path_01 <- "path/to/your_budget_file.xlsx"
 excel_file_path_02 <- "path/to/your_actual_costs_file.xlsx"
